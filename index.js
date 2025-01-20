@@ -59,6 +59,28 @@ app.post("/api/users/:_id/exercises", (req, res) => {
     .catch(err => console.error(err))
 })
 
+app.get("/api/users/:_id/logs", (req, res) => {
+  const { from, to, limit } = req.query;
+  const id = req.params._id;
+
+  User.findById(id)
+    .then(user => {
+      const logs = user.log;
+      const filteredLogs = logs
+        .filter(log => 
+          (!from || new Date(log.date).getTime() >= new Date(from).getTime()) &&
+          (!to || new Date(log.date).getTime() <= new Date(to).getTime()))
+      const finalLogs = limit ? filteredLogs.slice(0, limit) : filteredLogs
+
+      res.json({
+        _id: id,
+        username: user.username,
+        count: user.count,
+        log: finalLogs,
+      })
+    })
+})
+
 app.get("/mongo-health", (req, res) => {
   res.json({status: mongoose.connection.readyState})
 })
